@@ -83,6 +83,9 @@ public class BoardController {
         Board boardTemp=boardService.boardview(id);
         boardTemp.setTitle(board.getTitle());
         boardTemp.setContent(board.getContent());
+        boardTemp.setFilename(board.getFilename());
+        boardTemp.setFilepath(board.getFilepath());
+
 
         boardService.write(boardTemp,file);
         return "redirect:/board/list";

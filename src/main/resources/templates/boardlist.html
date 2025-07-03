@@ -22,6 +22,11 @@
                 <tr>
                     <th>글 번호</th>
                     <th>제목</th>
+                    <th>
+                        <form th:action="@{/board/write}" method="get">
+                            <button type="submit">글 작성</button>
+                        </form>
+                    </th>
                 </tr>
             </thead>
             <tbody>
