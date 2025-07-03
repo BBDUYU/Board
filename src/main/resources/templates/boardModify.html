@@ -31,6 +31,11 @@
         <form th:action="@{/board/update/{id}(id=${board.id})}" method="post" enctype="multipart/form-data">
             <input name="title" type="text" th:value="${board.title}">
             <textarea name="content" th:text="${board.content}"></textarea>
+
+            <div th:if="${board.filepath != null}">
+                첨부된 이미지
+                <img th:src="@{${board.filepath}}" alt="업로드 이미지" style="max-width: 100%;">
+            </div>
             <input type="file" name="file">
             <button type="submit">수정</button>
         </form>
