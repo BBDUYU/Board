@@ -7,20 +7,103 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .board-header {
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .board-header h2 {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .btn-write {
+            background-color: #fff;
+            color: #4e73df;
+            font-weight: 600;
+            border: none;
+        }
+
+        .btn-write:hover {
+            background-color: #e2e6ea;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        table.table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+        }
+
+        .pagination .page-link {
+            color: #4e73df;
+        }
+
+        .bi-image {
+            font-size: 1.2rem;
+            color: #1cc88a;
+        }
+        .thumbnail-tooltip {
+            display: none;
+            position: absolute;
+            top: -10px;
+            left: 100%;
+            margin-left: 10px;
+            z-index: 1000;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .thumbnail-tooltip img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 
 <body>
 <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>게시판</h2>
+
+    <div class="board-header d-flex justify-content-between align-items-center mb-4">
+        <h2>📌 게시판</h2>
         <form th:action="@{/board/write}" method="get">
-            <button type="submit" class="btn btn-primary">글 작성</button>
+            <button type="submit" class="btn btn-write px-4 py-2 rounded-pill shadow-sm">
+                <i class="bi bi-pencil-square me-1"></i> 글 작성
+            </button>
         </form>
     </div>
 
-    <form th:action="@{/board/list}" method="get" class="input-group mb-4">
-        <input type="text" name="searchKeyword" class="form-control" placeholder="검색어를 입력하세요">
-        <button type="submit" class="btn btn-outline-secondary">검색</button>
+    <form th:action="@{/board/list}" method="get" class="input-group mb-4 shadow-sm">
+        <input type="text" name="searchKeyword" class="form-control" placeholder="🔍 검색어를 입력하세요">
+        <button type="submit" class="btn btn-outline-primary">검색</button>
     </form>
 
     <table class="table table-hover text-center">
@@ -32,32 +115,74 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="board: ${list}">
+        <tr th:each="board : ${list}">
             <td th:text="${board.id}">1</td>
             <td class="text-start">
-                <a th:text="${board.title}" th:href="@{/board/view(id=${board.id})}" class="text-decoration-none text-dark"></a>
+                <a th:text="${board.title}" th:href="@{/board/view(id=${board.id})}"
+                   class="text-decoration-none text-dark fw-semibold"></a>
             </td>
-            <td>
-                <i class="bi bi-image" th:if="${board.filepath != null}"></i>
+            <td class="position-relative" th:if="${board.filepath != null}">
+                <i class="bi bi-image fs-5 text-success"
+                   th:attr="data-img=@{${board.filepath}}"
+                   onmouseover="showThumbnail(event, this)"
+                   onmousemove="moveThumbnail(event)"
+                   onmouseout="hideThumbnail()"></i>
             </td>
+            <td th:if="${board.filepath == null}">-</td>
+
         </tr>
         </tbody>
     </table>
 
-    <!-- 페이지네이션 -->
     <nav class="mt-4">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:each="page : ${#numbers.sequence(startPage, endPage)}"
                 th:classappend="${page == nowPage} ? 'active'">
-                <a class="page-link" th:if="${page != nowPage}" th:href="@{/board/list(page=${page-1}, searchKeyword=${param.searchKeyword})}"
+                <a class="page-link" th:if="${page != nowPage}"
+                   th:href="@{/board/list(page=${page-1}, searchKeyword=${param.searchKeyword})}"
                    th:text="${page}"></a>
                 <span class="page-link" th:if="${page == nowPage}" th:text="${page}"></span>
             </li>
         </ul>
     </nav>
-</div>
 
-<!-- Bootstrap JS (선택, 동적 컴포넌트 사용할 경우 필요) -->
+</div>
+<div id="thumbnail-preview"
+     style="position: absolute; display: none; z-index: 2000; pointer-events: none;">
+    <img id="thumbnail-img"
+         src=""
+         alt="썸네일 미리보기"
+         style="width: 120px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: white;">
+</div>
+<!-- 첨부파일 있음 툴팁 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showThumbnail(event, icon) {
+        const tooltip = document.getElementById('thumbnail-preview');
+        const img = document.getElementById('thumbnail-img');
+        const imgSrc = icon.getAttribute('data-img');
+
+        img.src = imgSrc;
+        tooltip.style.display = 'block';
+
+        // 마우스 초기 위치
+        moveThumbnail(event);
+    }
+
+    function moveThumbnail(event) {
+        const tooltip = document.getElementById('thumbnail-preview');
+        const offsetX = 20;
+        const offsetY = 20;
+
+        tooltip.style.left = (event.pageX + offsetX) + 'px';
+        tooltip.style.top = (event.pageY + offsetY) + 'px';
+    }
+
+    function hideThumbnail() {
+        const tooltip = document.getElementById('thumbnail-preview');
+        tooltip.style.display = 'none';
+    }
+</script>
+
 </body>
 </html>
