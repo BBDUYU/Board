@@ -22,6 +22,11 @@ public class BoardController {
     @Autowired
     private BoardService boardService;
 
+    @GetMapping("/")
+    public String home() {
+        return "boardlist"; // boardlist.html을 렌더링
+    }
+
     @GetMapping("/board/write") //localhost:8080/board/write
     public String boardWriteForm(){
 
