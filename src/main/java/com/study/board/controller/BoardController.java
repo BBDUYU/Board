@@ -22,10 +22,7 @@ public class BoardController {
     @Autowired
     private BoardService boardService;
 
-    @GetMapping("/")
-    public String root() {
-        return "redirect:/board/list";
-    }
+
 
     @GetMapping("/board/write") //localhost:8080/board/write
     public String boardWriteForm(){
@@ -62,7 +59,7 @@ public class BoardController {
         model.addAttribute("startPage",startPage);
         model.addAttribute("endPage",endPage);
 
-        return "boardlist";
+        return "index";
     }
 
     @GetMapping("/board/view") //localhost:8080/board/view?id=1
