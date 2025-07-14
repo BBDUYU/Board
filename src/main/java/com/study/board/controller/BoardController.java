@@ -23,8 +23,8 @@ public class BoardController {
     private BoardService boardService;
 
     @GetMapping("/")
-    public String home() {
-        return "boardlist"; // boardlist.html을 렌더링
+    public String root() {
+        return "redirect:/board/list";
     }
 
     @GetMapping("/board/write") //localhost:8080/board/write
